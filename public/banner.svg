@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 240" width="960" height="240">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d0e12"/>
+      <stop offset="100%" style="stop-color:#15181e"/>
+    </linearGradient>
+    <linearGradient id="glowLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1060ff;stop-opacity:0"/>
+      <stop offset="40%" style="stop-color:#1060ff;stop-opacity:0.6"/>
+      <stop offset="60%" style="stop-color:#1060ff;stop-opacity:0.6"/>
+      <stop offset="100%" style="stop-color:#1060ff;stop-opacity:0"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="240" fill="url(#bg)" rx="12"/>
+
+  <!-- Subtle grid -->
+  <g opacity="0.04" stroke="#ffffff" stroke-width="0.5">
+    <line x1="0" y1="48" x2="960" y2="48"/>
+    <line x1="0" y1="96" x2="960" y2="96"/>
+    <line x1="0" y1="144" x2="960" y2="144"/>
+    <line x1="0" y1="192" x2="960" y2="192"/>
+    <line x1="48" y1="0" x2="48" y2="240"/>
+    <line x1="96" y1="0" x2="96" y2="240"/>
+    <line x1="144" y1="0" x2="144" y2="240"/>
+    <line x1="192" y1="0" x2="192" y2="240"/>
+    <line x1="240" y1="0" x2="240" y2="240"/>
+    <line x1="288" y1="0" x2="288" y2="240"/>
+    <line x1="336" y1="0" x2="336" y2="240"/>
+    <line x1="384" y1="0" x2="384" y2="240"/>
+    <line x1="432" y1="0" x2="432" y2="240"/>
+    <line x1="480" y1="0" x2="480" y2="240"/>
+    <line x1="528" y1="0" x2="528" y2="240"/>
+    <line x1="576" y1="0" x2="576" y2="240"/>
+    <line x1="624" y1="0" x2="624" y2="240"/>
+    <line x1="672" y1="0" x2="672" y2="240"/>
+    <line x1="720" y1="0" x2="720" y2="240"/>
+    <line x1="768" y1="0" x2="768" y2="240"/>
+    <line x1="816" y1="0" x2="816" y2="240"/>
+    <line x1="864" y1="0" x2="864" y2="240"/>
+    <line x1="912" y1="0" x2="912" y2="240"/>
+  </g>
+
+  <!-- Glow line accent -->
+  <rect x="0" y="237" width="960" height="1.5" fill="url(#glowLine)" rx="1"/>
+
+  <!-- Logo mark -->
+  <g transform="translate(64, 88)">
+    <rect width="64" height="64" rx="14" fill="#1060ff" opacity="0.15"/>
+    <rect width="64" height="64" rx="14" fill="none" stroke="#1060ff" stroke-width="1.5" opacity="0.4"/>
+    <path d="M18 32 L28 22 L38 32 L28 42 Z" fill="none" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M26 32 L36 22 L46 32 L36 42 Z" fill="none" stroke="#1060ff" stroke-width="2" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="152" y="125" font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="44" font-weight="700" fill="#f0f0f2" letter-spacing="-1">Opti<tspan fill="#1060ff">Press</tspan></text>
+
+  <!-- Tagline -->
+  <text x="154" y="155" font-family="'Courier New', monospace" font-size="14" fill="#656a76" letter-spacing="0.5">Client-side batch image compression · Zero uploads · WASM-powered</text>
+
+  <!-- Badges row -->
+  <g transform="translate(152, 174)">
+    <!-- JPEG badge -->
+    <rect rx="4" width="52" height="20" fill="#1c1f26" stroke="#2a2d36" stroke-width="1"/>
+    <text x="26" y="14" font-family="'Courier New', monospace" font-size="11" fill="#efeff1" text-anchor="middle">JPEG</text>
+
+    <rect x="60" rx="4" width="52" height="20" fill="#1c1f26" stroke="#2a2d36" stroke-width="1"/>
+    <text x="86" y="14" font-family="'Courier New', monospace" font-size="11" fill="#efeff1" text-anchor="middle">WebP</text>
+
+    <rect x="120" rx="4" width="44" height="20" fill="#1c1f26" stroke="#2a2d36" stroke-width="1"/>
+    <text x="142" y="14" font-family="'Courier New', monospace" font-size="11" fill="#efeff1" text-anchor="middle">PNG</text>
+
+    <rect x="172" rx="4" width="48" height="20" fill="#1c1f26" stroke="#2a2d36" stroke-width="1"/>
+    <text x="196" y="14" font-family="'Courier New', monospace" font-size="11" fill="#efeff1" text-anchor="middle">AVIF</text>
+
+    <rect x="228" rx="4" width="90" height="20" fill="#0d2d0d" stroke="#1a4a1a" stroke-width="1"/>
+    <text x="273" y="14" font-family="'Courier New', monospace" font-size="11" fill="#4ade80" text-anchor="middle">100% local</text>
+  </g>
+
+  <!-- Right side — tech icons as text labels -->
+  <g transform="translate(760, 88)">
+    <text font-family="'Courier New', monospace" font-size="11" fill="#3b3d45">
+      <tspan x="0" dy="0" fill="#656a76">▸</tspan><tspan fill="#efeff1"> mozjpeg</tspan>
+      <tspan x="0" dy="22" fill="#656a76">▸</tspan><tspan fill="#efeff1"> libwebp</tspan>
+      <tspan x="0" dy="22" fill="#656a76">▸</tspan><tspan fill="#efeff1"> oxipng</tspan>
+      <tspan x="0" dy="22" fill="#656a76">▸</tspan><tspan fill="#efeff1"> lanczos3 resize</tspan>
+      <tspan x="0" dy="22" fill="#656a76">▸</tspan><tspan fill="#efeff1"> Worker pool</tspan>
+    </text>
+  </g>
+</svg>

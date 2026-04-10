@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+@theme {
+  /* Fonts — Figtree for display, system-ui for body, JetBrains Mono for metadata */
+  --font-family-display: 'Figtree', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-family-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Light mode commercial palette (HashiCorp-inspired) */
+  --color-bg: #ffffff;
+  --color-bg-subtle: #f7f8f9;
+  --color-bg-muted: #f1f2f3;
+  --color-bg-dark: #15181e;
+  --color-bg-deep: #0d0e12;
+
+  --color-border: #e5e7eb;
+  --color-border-subtle: rgba(178, 182, 189, 0.4);
+  --color-border-strong: #d5d7db;
+
+  --color-text: #0d0e12;
+  --color-text-secondary: #3b3d45;
+  --color-text-muted: #656a76;
+  --color-text-inverse: #efeff1;
+
+  --color-action: #1060ff;
+  --color-action-hover: #2264d6;
+  --color-action-subtle: rgba(16, 96, 255, 0.08);
+  --color-action-ring: rgba(16, 96, 255, 0.2);
+
+  --color-success: #0d7e6b;
+  --color-success-subtle: rgba(13, 126, 107, 0.08);
+  --color-success-border: rgba(13, 126, 107, 0.2);
+
+  --color-danger: #b3261e;
+  --color-danger-subtle: rgba(179, 38, 30, 0.08);
+
+  /* Shadows — HashiCorp whisper level */
+  --shadow-whisper: 0 1px 1px rgba(97, 104, 117, 0.05), 0 2px 2px rgba(97, 104, 117, 0.05);
+  --shadow-soft: 0 1px 2px rgba(17, 24, 39, 0.04), 0 2px 4px rgba(17, 24, 39, 0.03);
+  --shadow-lift: 0 4px 12px rgba(17, 24, 39, 0.06), 0 2px 4px rgba(17, 24, 39, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(16, 96, 255, 0.2);
+
+  /* Animations */
+  --animate-fade-up: fadeUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  --animate-fade-in: fadeIn 0.25s ease-out forwards;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    background-color: #ffffff;
+    color: #0d0e12;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-feature-settings: 'kern' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Display font for headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Figtree', system-ui, sans-serif;
+    font-feature-settings: 'kern' 1;
+    letter-spacing: -0.01em;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #d5d7db;
+  }
+
+  /* Selection */
+  ::selection {
+    background: rgba(16, 96, 255, 0.15);
+    color: #0d0e12;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #e5e7eb transparent;
+  }
+
+  /* Uppercase label pattern from DESIGN.md §3 */
+  .label-caps {
+    font-family: 'Figtree', system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #656a76;
+  }
+}
+
+/* Keyframes */
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Range input — HashiCorp style */
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 99px;
+  cursor: pointer;
+  outline: none;
+  background: #e5e7eb;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: 2px solid #1060ff;
+  box-shadow: 0 1px 3px rgba(16, 96, 255, 0.3);
+  transition: all 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(16, 96, 255, 0.4);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: 2px solid #1060ff;
+}
+
+/* Number input */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Focus visible — 3px solid action outline per DESIGN.md §6 */
+:focus-visible {
+  outline: 3px solid rgba(16, 96, 255, 0.4);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible {
+  outline-offset: 2px;
+}
