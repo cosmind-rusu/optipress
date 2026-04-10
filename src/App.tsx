@@ -13,6 +13,8 @@ const DEFAULT_SETTINGS: CompressionSettings = {
   quality: 80,
   maxWidth: null,
   effort: 'balanced',
+  webpLossless: false,
+  stripMetadata: true,
 };
 
 export default function App() {
@@ -73,13 +75,13 @@ export default function App() {
               </h1>
               <p className="mt-5 text-[17px] leading-[1.6] text-[var(--color-text-secondary)] max-w-xl">
                 Drop images and OptiPress re-encodes them in your browser using
-                native WebAssembly codecs — mozjpeg, libwebp and oxipng. Zero
+                native WebAssembly codecs — mozjpeg, libwebp, libavif and oxipng. Zero
                 uploads, zero tracking — verified in your Network tab.
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-[var(--color-text-muted)]">
                 <FeaturePill>Accepts JPEG · PNG · WebP · AVIF</FeaturePill>
-                <FeaturePill>Outputs JPEG · PNG · WebP</FeaturePill>
+                <FeaturePill>Outputs JPEG · PNG · WebP · AVIF</FeaturePill>
                 <FeaturePill>Batch + ZIP download</FeaturePill>
                 <FeaturePill>Web Worker powered</FeaturePill>
               </div>

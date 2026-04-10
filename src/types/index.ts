@@ -1,4 +1,4 @@
-export type OutputFormat = 'webp' | 'jpeg' | 'png' | 'original';
+export type OutputFormat = 'webp' | 'jpeg' | 'png' | 'avif' | 'original';
 
 export type JobStatus = 'queued' | 'processing' | 'done' | 'error';
 
@@ -9,6 +9,8 @@ export interface CompressionSettings {
   quality: number;          // 1-100, default 80
   maxWidth: number | null;  // null = no resize
   effort: Effort;           // encoder effort tier — speed vs compression
+  webpLossless: boolean;
+  stripMetadata: boolean;
 }
 
 export interface ImageJob {

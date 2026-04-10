@@ -9,6 +9,7 @@ const FORMATS: { value: OutputFormat; label: string }[] = [
   { value: 'webp', label: 'WebP' },
   { value: 'jpeg', label: 'JPEG' },
   { value: 'png', label: 'PNG' },
+  { value: 'avif', label: 'AVIF' },
   { value: 'original', label: 'Original' },
 ];
 
@@ -22,6 +23,8 @@ export default function Controls({ settings, onChange }: ControlsProps) {
   const set = <K extends keyof CompressionSettings>(key: K, value: CompressionSettings[K]) => {
     onChange({ ...settings, [key]: value });
   };
+
+  const webpLosslessActive = settings.outputFormat === 'webp' && settings.webpLossless;
 
   return (
     <div
@@ -57,7 +60,7 @@ export default function Controls({ settings, onChange }: ControlsProps) {
           <div className="flex items-center justify-between mb-2.5">
             <div className="label-caps">Quality</div>
             <span className="text-[13px] font-mono font-medium tabular-nums text-[var(--color-action)]">
-              {settings.quality}
+              {webpLosslessActive ? 'Lossless' : settings.quality}
             </span>
           </div>
           <input
@@ -67,7 +70,8 @@ export default function Controls({ settings, onChange }: ControlsProps) {
             step={1}
             value={settings.quality}
             onChange={e => set('quality', Number(e.target.value))}
-            className="w-full"
+            disabled={webpLosslessActive}
+            className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               background: `linear-gradient(to right, var(--color-action) 0%, var(--color-action) ${settings.quality}%, #e5e7eb ${settings.quality}%, #e5e7eb 100%)`,
             }}
@@ -94,28 +98,56 @@ export default function Controls({ settings, onChange }: ControlsProps) {
       </div>
 
       {/* Row 2: Effort */}
-      <div className="flex items-center gap-4 px-5 py-3 border-t border-[var(--color-border)] bg-[var(--color-bg-subtle)]">
-        <div className="label-caps whitespace-nowrap">Encoder effort</div>
-        <div className="flex rounded-md border border-[var(--color-border)] p-0.5 bg-white">
-          {EFFORTS.map(eff => (
-            <button
-              key={eff.value}
-              onClick={() => set('effort', eff.value)}
-              title={eff.hint}
-              className={`
-                px-3 py-1 text-[12px] font-semibold rounded transition-all duration-150
-                ${settings.effort === eff.value
-                  ? 'bg-[var(--color-bg-dark)] text-white shadow-sm'
-                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                }
-              `}
-            >
-              {eff.label}
-            </button>
-          ))}
+      <div className="px-5 py-3 border-t border-[var(--color-border)] bg-[var(--color-bg-subtle)] space-y-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="flex items-center gap-4">
+            <div className="label-caps whitespace-nowrap">Encoder effort</div>
+            <div className="flex rounded-md border border-[var(--color-border)] p-0.5 bg-white">
+              {EFFORTS.map(eff => (
+                <button
+                  key={eff.value}
+                  onClick={() => set('effort', eff.value)}
+                  title={eff.hint}
+                  className={`
+                    px-3 py-1 text-[12px] font-semibold rounded transition-all duration-150
+                    ${settings.effort === eff.value
+                      ? 'bg-[var(--color-bg-dark)] text-white shadow-sm'
+                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                    }
+                  `}
+                >
+                  {eff.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 lg:ml-auto">
+            <label className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[12px] font-medium transition-colors ${settings.outputFormat === 'webp' ? 'border-[var(--color-border)] bg-white text-[var(--color-text)]' : 'border-[var(--color-border)] bg-[var(--color-bg-subtle)] text-[var(--color-text-muted)]'}`}>
+              <input
+                type="checkbox"
+                checked={settings.webpLossless}
+                disabled={settings.outputFormat !== 'webp'}
+                onChange={e => set('webpLossless', e.target.checked)}
+                className="h-3.5 w-3.5 accent-[var(--color-action)]"
+              />
+              <span>Lossless WebP</span>
+            </label>
+
+            <label className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 text-[12px] font-medium text-[var(--color-text)] transition-colors">
+              <input
+                type="checkbox"
+                checked={settings.stripMetadata}
+                onChange={e => set('stripMetadata', e.target.checked)}
+                className="h-3.5 w-3.5 accent-[var(--color-action)]"
+              />
+              <span>Strip EXIF/IPTC</span>
+            </label>
+          </div>
         </div>
-        <div className="hidden md:block text-[12px] text-[var(--color-text-muted)] ml-auto font-mono">
-          mozjpeg · libwebp · oxipng
+
+        <div className="hidden md:block text-[12px] text-[var(--color-text-muted)] font-mono">
+          mozjpeg · libwebp · libavif · oxipng
         </div>
       </div>
     </div>

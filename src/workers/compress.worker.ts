@@ -27,6 +27,7 @@ type EncodeFn<T = unknown> = (data: ImageData, opts?: T) => Promise<ArrayBuffer>
 type DecodeFn = (buf: ArrayBuffer) => Promise<ImageData>;
 
 const codecCache: {
+  avifEncode?: EncodeFn;
   jpegEncode?: EncodeFn;
   jpegDecode?: DecodeFn;
   webpEncode?: EncodeFn;
@@ -43,6 +44,14 @@ const codecCache: {
     linearRGB?: boolean;
   }) => Promise<ImageData>;
 } = {};
+
+async function getAvifEncoder(): Promise<EncodeFn> {
+  if (!codecCache.avifEncode) {
+    const mod = await import('@jsquash/avif/encode');
+    codecCache.avifEncode = mod.default as EncodeFn;
+  }
+  return codecCache.avifEncode;
+}
 
 async function getJpegEncoder(): Promise<EncodeFn> {
   if (!codecCache.jpegEncode) {
@@ -162,6 +171,171 @@ async function maybeResize(imageData: ImageData, maxWidth: number | null): Promi
   });
 }
 
+function isExifApp1Segment(segment: Uint8Array): boolean {
+  return (
+    segment.length >= 10 &&
+    segment[0] === 0xFF &&
+    segment[1] === 0xE1 &&
+    segment[4] === 0x45 &&
+    segment[5] === 0x78 &&
+    segment[6] === 0x69 &&
+    segment[7] === 0x66 &&
+    segment[8] === 0x00 &&
+    segment[9] === 0x00
+  );
+}
+
+function readUint16(view: Uint8Array, offset: number, littleEndian: boolean): number {
+  return littleEndian
+    ? view[offset] | (view[offset + 1] << 8)
+    : (view[offset] << 8) | view[offset + 1];
+}
+
+function readUint32(view: Uint8Array, offset: number, littleEndian: boolean): number {
+  return littleEndian
+    ? ((view[offset]) | (view[offset + 1] << 8) | (view[offset + 2] << 16) | (view[offset + 3] << 24)) >>> 0
+    : (((view[offset] << 24) >>> 0) | (view[offset + 1] << 16) | (view[offset + 2] << 8) | view[offset + 3]) >>> 0;
+}
+
+function writeUint16(view: Uint8Array, offset: number, value: number, littleEndian: boolean): void {
+  if (littleEndian) {
+    view[offset] = value & 0xFF;
+    view[offset + 1] = (value >> 8) & 0xFF;
+    return;
+  }
+
+  view[offset] = (value >> 8) & 0xFF;
+  view[offset + 1] = value & 0xFF;
+}
+
+function normalizeJpegExifOrientation(segment: Uint8Array): Uint8Array {
+  const copy = segment.slice();
+  if (!isExifApp1Segment(copy)) return copy;
+
+  const tiffStart = 10;
+  if (copy.length < tiffStart + 8) return copy;
+
+  const littleEndian = copy[tiffStart] === 0x49 && copy[tiffStart + 1] === 0x49;
+  const bigEndian = copy[tiffStart] === 0x4D && copy[tiffStart + 1] === 0x4D;
+  if (!littleEndian && !bigEndian) return copy;
+
+  const ifd0Offset = readUint32(copy, tiffStart + 4, littleEndian);
+  const ifd0Start = tiffStart + ifd0Offset;
+  if (ifd0Start + 2 > copy.length) return copy;
+
+  const entryCount = readUint16(copy, ifd0Start, littleEndian);
+  for (let index = 0; index < entryCount; index++) {
+    const entryOffset = ifd0Start + 2 + (index * 12);
+    if (entryOffset + 12 > copy.length) return copy;
+
+    const tag = readUint16(copy, entryOffset, littleEndian);
+    if (tag !== 0x0112) continue;
+
+    const type = readUint16(copy, entryOffset + 2, littleEndian);
+    const count = readUint32(copy, entryOffset + 4, littleEndian);
+    if (type === 3 && count >= 1) {
+      writeUint16(copy, entryOffset + 8, 1, littleEndian);
+      writeUint16(copy, entryOffset + 10, 0, littleEndian);
+    }
+    return copy;
+  }
+
+  return copy;
+}
+
+function collectJpegMetadataSegments(buffer: ArrayBuffer): Uint8Array[] {
+  const bytes = new Uint8Array(buffer);
+  if (bytes.length < 4 || bytes[0] !== 0xFF || bytes[1] !== 0xD8) return [];
+
+  const metadata: Uint8Array[] = [];
+  let offset = 2;
+
+  while (offset + 4 <= bytes.length) {
+    if (bytes[offset] !== 0xFF) break;
+    while (offset + 1 < bytes.length && bytes[offset + 1] === 0xFF) offset++;
+    if (offset + 3 >= bytes.length) break;
+
+    const marker = bytes[offset + 1];
+    if (marker === 0xDA || marker === 0xD9) break;
+
+    if ((marker >= 0xD0 && marker <= 0xD7) || marker === 0x01) {
+      offset += 2;
+      continue;
+    }
+
+    const length = (bytes[offset + 2] << 8) | bytes[offset + 3];
+    if (length < 2 || offset + 2 + length > bytes.length) break;
+
+    if (marker === 0xE1 || marker === 0xED) {
+      const segment = bytes.slice(offset, offset + 2 + length);
+      metadata.push(marker === 0xE1 ? normalizeJpegExifOrientation(segment) : segment);
+    }
+
+    offset += 2 + length;
+  }
+
+  return metadata;
+}
+
+function findJpegMetadataInsertOffset(bytes: Uint8Array): number {
+  if (bytes.length < 4 || bytes[0] !== 0xFF || bytes[1] !== 0xD8) return 0;
+
+  let offset = 2;
+  while (offset + 4 <= bytes.length && bytes[offset] === 0xFF) {
+    while (offset + 1 < bytes.length && bytes[offset + 1] === 0xFF) offset++;
+    if (offset + 3 >= bytes.length) break;
+
+    const marker = bytes[offset + 1];
+    if (marker === 0xDA || marker === 0xD9) break;
+
+    if ((marker >= 0xE0 && marker <= 0xEF) || marker === 0xFE) {
+      const length = (bytes[offset + 2] << 8) | bytes[offset + 3];
+      if (length < 2 || offset + 2 + length > bytes.length) break;
+      offset += 2 + length;
+      continue;
+    }
+
+    break;
+  }
+
+  return offset;
+}
+
+function injectJpegMetadata(buffer: ArrayBuffer, metadata: Uint8Array[]): ArrayBuffer {
+  if (metadata.length === 0) return buffer;
+
+  const bytes = new Uint8Array(buffer);
+  const insertOffset = findJpegMetadataInsertOffset(bytes);
+  if (insertOffset <= 0) return buffer;
+
+  const metadataLength = metadata.reduce((sum, segment) => sum + segment.length, 0);
+  const merged = new Uint8Array(bytes.length + metadataLength);
+  merged.set(bytes.subarray(0, insertOffset), 0);
+
+  let offset = insertOffset;
+  for (const segment of metadata) {
+    merged.set(segment, offset);
+    offset += segment.length;
+  }
+
+  merged.set(bytes.subarray(insertOffset), offset);
+  return merged.buffer;
+}
+
+function applyMetadataPolicy(
+  originalBuffer: ArrayBuffer,
+  compressedBuffer: ArrayBuffer,
+  originalFormat: string,
+  outputFormat: string,
+  stripMetadata: boolean
+): ArrayBuffer {
+  if (stripMetadata) return compressedBuffer;
+  if (originalFormat !== 'image/jpeg' || outputFormat !== 'image/jpeg') return compressedBuffer;
+
+  const metadata = collectJpegMetadataSegments(originalBuffer);
+  return injectJpegMetadata(compressedBuffer, metadata);
+}
+
 // ─────────────────────────────────────────────────────────────
 // Encoder option presets keyed by effort
 // Each tier trades encoding time for better compression ratios
@@ -203,7 +377,7 @@ function jpegOptions(quality: number, effort: Effort) {
   return base; // balanced
 }
 
-function webpOptions(quality: number, effort: Effort) {
+function webpOptions(quality: number, effort: Effort, lossless: boolean) {
   // libwebp: method 0 (fastest) → 6 (slowest/smallest)
   const methodByEffort: Record<Effort, number> = {
     fast: 2,
@@ -211,7 +385,7 @@ function webpOptions(quality: number, effort: Effort) {
     best: 6,
   };
   return {
-    quality,
+    quality: lossless ? 100 : quality,
     target_size: 0,
     target_PSNR: 0,
     method: methodByEffort[effort],
@@ -229,8 +403,8 @@ function webpOptions(quality: number, effort: Effort) {
     alpha_compression: 1,
     alpha_filtering: 1,
     alpha_quality: 100,
-    lossless: 0,
-    exact: 0,
+    lossless: lossless ? 1 : 0,
+    exact: lossless ? 1 : 0,
     image_hint: 0,
     emulate_jpeg_size: 0,
     thread_level: 0,
@@ -238,6 +412,19 @@ function webpOptions(quality: number, effort: Effort) {
     near_lossless: 100,
     use_delta_palette: 0,
     use_sharp_yuv: effort === 'best' ? 1 : 0,
+  };
+}
+
+function avifOptions(quality: number, effort: Effort) {
+  const speedByEffort: Record<Effort, number> = {
+    fast: 8,
+    balanced: 6,
+    best: 4,
+  };
+
+  return {
+    cqLevel: Math.max(0, Math.min(63, Math.round(((100 - quality) / 100) * 63))),
+    speed: speedByEffort[effort],
   };
 }
 
@@ -255,9 +442,10 @@ function resolveOutputMime(settings: CompressionSettings, originalFormat: string
     case 'jpeg': return 'image/jpeg';
     case 'webp': return 'image/webp';
     case 'png':  return 'image/png';
+    case 'avif': return 'image/avif';
     case 'original':
       // Only return formats we can actually encode; otherwise default to webp
-      if (['image/jpeg', 'image/png', 'image/webp'].includes(originalFormat)) {
+      if (['image/jpeg', 'image/png', 'image/webp', 'image/avif'].includes(originalFormat)) {
         return originalFormat;
       }
       return 'image/webp';
@@ -278,7 +466,12 @@ async function encodeImageData(
 
   if (mime === 'image/webp') {
     const encode = await getWebpEncoder();
-    return encode(imageData, webpOptions(settings.quality, settings.effort));
+    return encode(imageData, webpOptions(settings.quality, settings.effort, settings.webpLossless));
+  }
+
+  if (mime === 'image/avif') {
+    const encode = await getAvifEncoder();
+    return encode(imageData, avifOptions(settings.quality, settings.effort));
   }
 
   if (mime === 'image/png') {
@@ -323,7 +516,8 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 
     // 3. Encode via the appropriate WASM codec
     const targetMime = resolveOutputMime(settings, originalFormat);
-    const compressed = await encodeImageData(resized, targetMime, settings);
+    const encoded = await encodeImageData(resized, targetMime, settings);
+    const compressed = applyMetadataPolicy(buffer, encoded, originalFormat, targetMime, settings.stripMetadata);
     post({ type: 'progress', jobId, progress: 95 });
 
     const durationMs = Math.round(performance.now() - t0);
