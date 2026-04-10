@@ -24,9 +24,15 @@ export function detectFormat(buffer: ArrayBuffer): string {
     return 'image/webp';
   }
 
-  // AVIF / HEIF (ftyp box)
+  // ISO-BMFF container (ftyp box). We only accept it as AVIF when the
+  // major_brand at bytes 8-11 is 'avif' or 'avis' — otherwise this could be
+  // HEIC, HEIF, MP4, MOV, JPEG 2000, etc. and we shouldn't mislabel it.
   if (view[4] === 0x66 && view[5] === 0x74 && view[6] === 0x79 && view[7] === 0x70) {
-    return 'image/avif';
+    const brand = String.fromCharCode(view[8], view[9], view[10], view[11]);
+    if (brand === 'avif' || brand === 'avis') {
+      return 'image/avif';
+    }
+    return 'unknown';
   }
 
   return 'unknown';
