@@ -1,0 +1,23 @@
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+          <!-- Contenedor Estilo Card (Standard Radius 8px) -->
+          <rect width="32" height="32" rx="8" fill="#15181e"/>
+          
+          <!-- Borde de micro-detalle (Whisper border) -->
+          <rect x="0.5" y="0.5" width="31" height="31" rx="7.5" stroke="rgba(178, 182, 189, 0.2)" stroke-width="1"/>
+
+          <!-- Símbolo: Infrastructure Flow -->
+          <g transform="translate(1, 0)">
+            <!-- Diamante de fondo (Opacity Whisper) -->
+            <path d="M12 16 L18 10 L24 16 L18 22 Z" 
+                  stroke="#14c6cb" 
+                  stroke-width="1.75" 
+                  stroke-linejoin="round" 
+                  opacity="0.3"/>
+                  
+            <!-- Diamante principal (Waypoint Teal) -->
+            <path d="M7 16 L13 10 L19 16 L13 22 Z" 
+                  stroke="#14c6cb" 
+                  stroke-width="1.75" 
+                  stroke-linejoin="round"/>
+          </g>
+        </svg>
