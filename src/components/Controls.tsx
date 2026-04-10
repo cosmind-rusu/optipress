@@ -69,7 +69,7 @@ export default function Controls({ settings, onChange }: ControlsProps) {
             onChange={e => set('quality', Number(e.target.value))}
             className="w-full"
             style={{
-              background: `linear-gradient(to right, #1060ff 0%, #1060ff ${settings.quality}%, #e5e7eb ${settings.quality}%, #e5e7eb 100%)`,
+              background: `linear-gradient(to right, var(--color-action) 0%, var(--color-action) ${settings.quality}%, #e5e7eb ${settings.quality}%, #e5e7eb 100%)`,
             }}
           />
         </div>

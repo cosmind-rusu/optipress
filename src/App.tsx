@@ -28,12 +28,7 @@ export default function App() {
         <div className="max-w-[1080px] mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             {/* Logo mark */}
-            <div className="w-7 h-7 rounded-md bg-[var(--color-bg-dark)] flex items-center justify-center">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <path d="M3 8l3-3 3 3-3 3z" stroke="#ffffff" strokeWidth="1.5" strokeLinejoin="round"/>
-                <path d="M7 8l3-3 3 3-3 3z" stroke="#ffffff" strokeWidth="1.5" strokeLinejoin="round" opacity="0.55"/>
-              </svg>
-            </div>
+            <img src="/optipress.svg" alt="OptiPress" width={28} height={28} className="w-7 h-7" />
             <span className="font-display font-bold text-[15px] tracking-tight">OptiPress</span>
             <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-medium uppercase tracking-wider rounded text-[var(--color-text-muted)] border border-[var(--color-border)]">
               v0.1

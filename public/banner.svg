@@ -5,10 +5,10 @@
       <stop offset="100%" style="stop-color:#15181e"/>
     </linearGradient>
     <linearGradient id="glowLine" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#1060ff;stop-opacity:0"/>
-      <stop offset="40%" style="stop-color:#1060ff;stop-opacity:0.6"/>
-      <stop offset="60%" style="stop-color:#1060ff;stop-opacity:0.6"/>
-      <stop offset="100%" style="stop-color:#1060ff;stop-opacity:0"/>
+      <stop offset="0%" style="stop-color:#14c6cb;stop-opacity:0"/>
+      <stop offset="40%" style="stop-color:#14c6cb;stop-opacity:0.7"/>
+      <stop offset="60%" style="stop-color:#14c6cb;stop-opacity:0.7"/>
+      <stop offset="100%" style="stop-color:#14c6cb;stop-opacity:0"/>
     </linearGradient>
     <filter id="glow">
       <feGaussianBlur stdDeviation="3" result="blur"/>
@@ -49,16 +49,18 @@
   <!-- Glow line accent -->
   <rect x="0" y="237" width="960" height="1.5" fill="url(#glowLine)" rx="1"/>
 
-  <!-- Logo mark -->
+  <!-- Logo mark — rebuilt from optipress.svg (teal diamonds on dark card) -->
   <g transform="translate(64, 88)">
-    <rect width="64" height="64" rx="14" fill="#1060ff" opacity="0.15"/>
-    <rect width="64" height="64" rx="14" fill="none" stroke="#1060ff" stroke-width="1.5" opacity="0.4"/>
-    <path d="M18 32 L28 22 L38 32 L28 42 Z" fill="none" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
-    <path d="M26 32 L36 22 L46 32 L36 42 Z" fill="none" stroke="#1060ff" stroke-width="2" stroke-linejoin="round"/>
+    <rect width="64" height="64" rx="14" fill="#15181e"/>
+    <rect x="0.5" y="0.5" width="63" height="63" rx="13.5" fill="none" stroke="rgba(178, 182, 189, 0.2)" stroke-width="1"/>
+    <g transform="translate(2, 0)">
+      <path d="M24 32 L36 20 L48 32 L36 44 Z" fill="none" stroke="#14c6cb" stroke-width="2.25" stroke-linejoin="round" opacity="0.3"/>
+      <path d="M14 32 L26 20 L38 32 L26 44 Z" fill="none" stroke="#14c6cb" stroke-width="2.25" stroke-linejoin="round"/>
+    </g>
   </g>
 
   <!-- Wordmark -->
-  <text x="152" y="125" font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="44" font-weight="700" fill="#f0f0f2" letter-spacing="-1">Opti<tspan fill="#1060ff">Press</tspan></text>
+  <text x="152" y="125" font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="44" font-weight="700" fill="#f0f0f2" letter-spacing="-1">Opti<tspan fill="#14c6cb">Press</tspan></text>
 
   <!-- Tagline -->
   <text x="154" y="155" font-family="'Courier New', monospace" font-size="14" fill="#656a76" letter-spacing="0.5">Client-side batch image compression · Zero uploads · WASM-powered</text>
@@ -78,18 +80,18 @@
     <rect x="172" rx="4" width="48" height="20" fill="#1c1f26" stroke="#2a2d36" stroke-width="1"/>
     <text x="196" y="14" font-family="'Courier New', monospace" font-size="11" fill="#efeff1" text-anchor="middle">AVIF</text>
 
-    <rect x="228" rx="4" width="90" height="20" fill="#0d2d0d" stroke="#1a4a1a" stroke-width="1"/>
-    <text x="273" y="14" font-family="'Courier New', monospace" font-size="11" fill="#4ade80" text-anchor="middle">100% local</text>
+    <rect x="228" rx="4" width="90" height="20" fill="rgba(20, 198, 203, 0.12)" stroke="rgba(20, 198, 203, 0.45)" stroke-width="1"/>
+    <text x="273" y="14" font-family="'Courier New', monospace" font-size="11" fill="#14c6cb" text-anchor="middle">100% local</text>
   </g>
 
   <!-- Right side — tech icons as text labels -->
   <g transform="translate(760, 88)">
     <text font-family="'Courier New', monospace" font-size="11" fill="#3b3d45">
-      <tspan x="0" dy="0" fill="#656a76">▸</tspan><tspan fill="#efeff1"> mozjpeg</tspan>
-      <tspan x="0" dy="22" fill="#656a76">▸</tspan><tspan fill="#efeff1"> libwebp</tspan>
-      <tspan x="0" dy="22" fill="#656a76">▸</tspan><tspan fill="#efeff1"> oxipng</tspan>
-      <tspan x="0" dy="22" fill="#656a76">▸</tspan><tspan fill="#efeff1"> lanczos3 resize</tspan>
-      <tspan x="0" dy="22" fill="#656a76">▸</tspan><tspan fill="#efeff1"> Worker pool</tspan>
+      <tspan x="0" dy="0" fill="#14c6cb">▸</tspan><tspan fill="#efeff1"> mozjpeg</tspan>
+      <tspan x="0" dy="22" fill="#14c6cb">▸</tspan><tspan fill="#efeff1"> libwebp</tspan>
+      <tspan x="0" dy="22" fill="#14c6cb">▸</tspan><tspan fill="#efeff1"> oxipng</tspan>
+      <tspan x="0" dy="22" fill="#14c6cb">▸</tspan><tspan fill="#efeff1"> lanczos3 resize</tspan>
+      <tspan x="0" dy="22" fill="#14c6cb">▸</tspan><tspan fill="#efeff1"> Worker pool</tspan>
     </text>
   </g>
 </svg>

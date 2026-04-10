@@ -22,10 +22,11 @@
   --color-text-muted: #656a76;
   --color-text-inverse: #efeff1;
 
-  --color-action: #1060ff;
-  --color-action-hover: #2264d6;
-  --color-action-subtle: rgba(16, 96, 255, 0.08);
-  --color-action-ring: rgba(16, 96, 255, 0.2);
+  /* Accent — teal derived from the OptiPress mark (#14c6cb) */
+  --color-action: #14c6cb;
+  --color-action-hover: #10a8ad;
+  --color-action-subtle: rgba(20, 198, 203, 0.1);
+  --color-action-ring: rgba(20, 198, 203, 0.28);
 
   --color-success: #0d7e6b;
   --color-success-subtle: rgba(13, 126, 107, 0.08);
@@ -38,7 +39,7 @@
   --shadow-whisper: 0 1px 1px rgba(97, 104, 117, 0.05), 0 2px 2px rgba(97, 104, 117, 0.05);
   --shadow-soft: 0 1px 2px rgba(17, 24, 39, 0.04), 0 2px 4px rgba(17, 24, 39, 0.03);
   --shadow-lift: 0 4px 12px rgba(17, 24, 39, 0.06), 0 2px 4px rgba(17, 24, 39, 0.04);
-  --shadow-focus: 0 0 0 3px rgba(16, 96, 255, 0.2);
+  --shadow-focus: 0 0 0 3px rgba(20, 198, 203, 0.28);
 
   /* Animations */
   --animate-fade-up: fadeUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -89,7 +90,7 @@
 
   /* Selection */
   ::selection {
-    background: rgba(16, 96, 255, 0.15);
+    background: rgba(20, 198, 203, 0.2);
     color: #0d0e12;
   }
 }
@@ -140,14 +141,14 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 50%;
   background: #ffffff;
   cursor: pointer;
-  border: 2px solid #1060ff;
-  box-shadow: 0 1px 3px rgba(16, 96, 255, 0.3);
+  border: 2px solid #14c6cb;
+  box-shadow: 0 1px 3px rgba(20, 198, 203, 0.35);
   transition: all 0.15s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 2px 6px rgba(16, 96, 255, 0.4);
+  box-shadow: 0 2px 6px rgba(20, 198, 203, 0.45);
 }
 
 input[type="range"]::-moz-range-thumb {
@@ -156,7 +157,7 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 50%;
   background: #ffffff;
   cursor: pointer;
-  border: 2px solid #1060ff;
+  border: 2px solid #14c6cb;
 }
 
 /* Number input */
@@ -171,7 +172,7 @@ input[type="number"] {
 
 /* Focus visible — 3px solid action outline per DESIGN.md §6 */
 :focus-visible {
-  outline: 3px solid rgba(16, 96, 255, 0.4);
+  outline: 3px solid rgba(20, 198, 203, 0.5);
   outline-offset: 2px;
   border-radius: 4px;
 }
