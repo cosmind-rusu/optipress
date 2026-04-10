@@ -27,12 +27,19 @@ export function useImageQueue(settings: CompressionSettings) {
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
+  // Tracks job ids that still exist in state. Needed because WorkerPool can't
+  // cancel a job mid-encode: if the user removes a job while its worker is
+  // still running, the completion message arrives afterwards. Without this
+  // guard the callback would create a Blob URL that nothing ever revokes.
+  const liveJobsRef = useRef<Set<string>>(new Set());
+
   // Initialize pool once
   useEffect(() => {
     poolRef.current = new WorkerPool(getDefaultPoolSize());
     return () => {
       poolRef.current?.dispose();
       poolRef.current = null;
+      liveJobsRef.current.clear();
     };
   }, []);
 
@@ -75,6 +82,11 @@ export function useImageQueue(settings: CompressionSettings) {
         settings: settingsRef.current,
       },
       (response: WorkerResponse) => {
+        // If the user removed the job while the worker was still encoding,
+        // ignore every remaining message for this id. Don't create Blob URLs
+        // that nothing owns.
+        if (!liveJobsRef.current.has(job.id)) return;
+
         if (response.type === 'progress') {
           updateJob(job.id, { progress: response.progress ?? 0 });
           return;
@@ -116,6 +128,7 @@ export function useImageQueue(settings: CompressionSettings) {
 
     if (newJobs.length === 0) return;
 
+    for (const job of newJobs) liveJobsRef.current.add(job.id);
     setJobs(prev => [...prev, ...newJobs]);
 
     // Dispatch all — the pool handles its own concurrency limits
@@ -125,6 +138,7 @@ export function useImageQueue(settings: CompressionSettings) {
   }, [submitJob]);
 
   const removeJob = useCallback((id: string) => {
+    liveJobsRef.current.delete(id);
     poolRef.current?.cancel(id);
     setJobs(prev => {
       const job = prev.find(j => j.id === id);
@@ -141,6 +155,7 @@ export function useImageQueue(settings: CompressionSettings) {
       const job = prev.find(j => j.id === id);
       if (!job) return prev;
       const reset = { ...job, status: 'queued' as const, progress: 0, error: null };
+      liveJobsRef.current.add(id);
       // Submit the reset job asynchronously (state is stale in this closure)
       queueMicrotask(() => submitJob(reset));
       return prev.map(j => j.id === id ? reset : j);
@@ -150,6 +165,7 @@ export function useImageQueue(settings: CompressionSettings) {
   const clearAll = useCallback(() => {
     setJobs(prev => {
       for (const job of prev) {
+        liveJobsRef.current.delete(job.id);
         URL.revokeObjectURL(job.thumbnailUrl);
         if (job.compressedUrl) URL.revokeObjectURL(job.compressedUrl);
         poolRef.current?.cancel(job.id);
