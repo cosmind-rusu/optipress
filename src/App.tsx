@@ -42,7 +42,7 @@ export default function App() {
 
           <nav className="flex items-center gap-4">
             <a
-              href="https://github.com"
+              href="https://github.com/cosmind-rusu/optipress"
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:inline text-[13px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-action)] transition-colors"
@@ -77,14 +77,15 @@ export default function App() {
                 <span className="text-[var(--color-text-muted)]">Nothing leaves your device.</span>
               </h1>
               <p className="mt-5 text-[17px] leading-[1.6] text-[var(--color-text-secondary)] max-w-xl">
-                Drop images and OptiPress re-encodes them in your browser using the
-                Canvas API. Zero uploads, zero tracking — verified in your Network tab.
+                Drop images and OptiPress re-encodes them in your browser using
+                native WebAssembly codecs — mozjpeg, libwebp and oxipng. Zero
+                uploads, zero tracking — verified in your Network tab.
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-[var(--color-text-muted)]">
-                <FeaturePill>JPEG · PNG · WebP · AVIF</FeaturePill>
-                <FeaturePill>Batch processing</FeaturePill>
-                <FeaturePill>ZIP download</FeaturePill>
+                <FeaturePill>Accepts JPEG · PNG · WebP · AVIF</FeaturePill>
+                <FeaturePill>Outputs JPEG · PNG · WebP</FeaturePill>
+                <FeaturePill>Batch + ZIP download</FeaturePill>
                 <FeaturePill>Web Worker powered</FeaturePill>
               </div>
             </div>
