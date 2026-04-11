@@ -16,6 +16,7 @@ function createJob(file: File): ImageJob {
     compressedSize: null,
     compressedFormat: null,
     compressedUrl: null,
+    ssimScore: null,
     error: null,
     durationMs: null,
   };
@@ -51,7 +52,17 @@ export function useImageQueue(settings: CompressionSettings) {
     const pool = poolRef.current;
     if (!pool) return;
 
-    updateJob(job.id, { status: 'processing', progress: 0 });
+    updateJob(job.id, {
+      status: 'processing',
+      progress: 0,
+      compressedBuffer: null,
+      compressedSize: null,
+      compressedFormat: null,
+      compressedUrl: null,
+      ssimScore: null,
+      error: null,
+      durationMs: null,
+    });
 
     let buffer: ArrayBuffer;
     try {
@@ -106,6 +117,7 @@ export function useImageQueue(settings: CompressionSettings) {
             compressedSize: response.compressedSize ?? null,
             compressedFormat: response.compressedFormat ?? null,
             compressedUrl,
+            ssimScore: response.ssimScore ?? null,
             durationMs: response.durationMs ?? null,
           });
           return;
@@ -154,7 +166,19 @@ export function useImageQueue(settings: CompressionSettings) {
     setJobs(prev => {
       const job = prev.find(j => j.id === id);
       if (!job) return prev;
-      const reset = { ...job, status: 'queued' as const, progress: 0, error: null };
+      if (job.compressedUrl) URL.revokeObjectURL(job.compressedUrl);
+      const reset = {
+        ...job,
+        status: 'queued' as const,
+        progress: 0,
+        compressedBuffer: null,
+        compressedSize: null,
+        compressedFormat: null,
+        compressedUrl: null,
+        ssimScore: null,
+        error: null,
+        durationMs: null,
+      };
       liveJobsRef.current.add(id);
       // Submit the reset job asynchronously (state is stale in this closure)
       queueMicrotask(() => submitJob(reset));

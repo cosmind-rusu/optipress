@@ -6,6 +6,7 @@ interface BeforeAfterSliderProps {
   originalSize: number;
   compressedUrl: string;
   compressedSize: number;
+  ssimScore: number | null;
 }
 
 export default function BeforeAfterSlider({
@@ -13,6 +14,7 @@ export default function BeforeAfterSlider({
   originalSize,
   compressedUrl,
   compressedSize,
+  ssimScore,
 }: BeforeAfterSliderProps) {
   const [position, setPosition] = useState(50);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -131,6 +133,12 @@ export default function BeforeAfterSlider({
           </span>
         )}
       </div>
+
+      {ssimScore != null && (
+        <div className="absolute bottom-3 left-3 px-2 py-1 rounded-md bg-white/95 backdrop-blur-sm border border-[var(--color-border)] text-[11px] font-mono font-medium text-[var(--color-text-secondary)] pointer-events-none">
+          SSIM · {ssimScore.toFixed(3)}
+        </div>
+      )}
     </div>
   );
 }

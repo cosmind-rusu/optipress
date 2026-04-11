@@ -336,6 +336,106 @@ function applyMetadataPolicy(
   return injectJpegMetadata(compressedBuffer, metadata);
 }
 
+async function resizeForSsim(imageData: ImageData, maxDimension: number): Promise<ImageData> {
+  const largestSide = Math.max(imageData.width, imageData.height);
+  if (largestSide <= maxDimension) return imageData;
+
+  const scale = maxDimension / largestSide;
+  const width = Math.max(1, Math.round(imageData.width * scale));
+  const height = Math.max(1, Math.round(imageData.height * scale));
+  const resize = await getResize();
+
+  return resize(imageData, {
+    width,
+    height,
+    method: 'lanczos3',
+    fitMethod: 'stretch',
+    premultiply: true,
+    linearRGB: true,
+  });
+}
+
+async function matchImageDataSize(imageData: ImageData, width: number, height: number): Promise<ImageData> {
+  if (imageData.width === width && imageData.height === height) return imageData;
+  const resize = await getResize();
+  return resize(imageData, {
+    width,
+    height,
+    method: 'lanczos3',
+    fitMethod: 'stretch',
+    premultiply: true,
+    linearRGB: true,
+  });
+}
+
+function luminanceAt(data: Uint8ClampedArray, offset: number): number {
+  return (0.2126 * data[offset]) + (0.7152 * data[offset + 1]) + (0.0722 * data[offset + 2]);
+}
+
+function computeWindowSsim(reference: ImageData, candidate: ImageData, startX: number, startY: number, windowSize: number): number {
+  const ref = reference.data;
+  const cmp = candidate.data;
+
+  let sumX = 0;
+  let sumY = 0;
+  let sumXX = 0;
+  let sumYY = 0;
+  let sumXY = 0;
+  let samples = 0;
+
+  const endX = Math.min(reference.width, startX + windowSize);
+  const endY = Math.min(reference.height, startY + windowSize);
+
+  for (let y = startY; y < endY; y++) {
+    for (let x = startX; x < endX; x++) {
+      const offset = ((y * reference.width) + x) * 4;
+      const lx = luminanceAt(ref, offset);
+      const ly = luminanceAt(cmp, offset);
+
+      sumX += lx;
+      sumY += ly;
+      sumXX += lx * lx;
+      sumYY += ly * ly;
+      sumXY += lx * ly;
+      samples += 1;
+    }
+  }
+
+  if (samples === 0) return 1;
+
+  const meanX = sumX / samples;
+  const meanY = sumY / samples;
+  const varianceX = Math.max(0, (sumXX / samples) - (meanX * meanX));
+  const varianceY = Math.max(0, (sumYY / samples) - (meanY * meanY));
+  const covariance = (sumXY / samples) - (meanX * meanY);
+
+  const c1 = (0.01 * 255) ** 2;
+  const c2 = (0.03 * 255) ** 2;
+
+  return ((2 * meanX * meanY) + c1) * ((2 * covariance) + c2)
+    / (((meanX * meanX) + (meanY * meanY) + c1) * (varianceX + varianceY + c2));
+}
+
+async function computeSsimScore(reference: ImageData, candidate: ImageData): Promise<number> {
+  const resizedReference = await resizeForSsim(reference, 256);
+  const matchedCandidate = await matchImageDataSize(candidate, resizedReference.width, resizedReference.height);
+  const resizedCandidate = await resizeForSsim(matchedCandidate, 256);
+
+  const windowSize = 8;
+  let total = 0;
+  let windows = 0;
+
+  for (let y = 0; y < resizedReference.height; y += windowSize) {
+    for (let x = 0; x < resizedReference.width; x += windowSize) {
+      total += computeWindowSsim(resizedReference, resizedCandidate, x, y, windowSize);
+      windows += 1;
+    }
+  }
+
+  if (windows === 0) return 1;
+  return Math.max(0, Math.min(1, total / windows));
+}
+
 // ─────────────────────────────────────────────────────────────
 // Encoder option presets keyed by effort
 // Each tier trades encoding time for better compression ratios
@@ -506,18 +606,19 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
   try {
     post({ type: 'progress', jobId, progress: 5 });
 
-    // 1. Decode to ImageData (RGBA)
     const imageData = await decodeToImageData(buffer, originalFormat);
     post({ type: 'progress', jobId, progress: 30 });
 
-    // 2. Optional resize (lanczos3 via WASM)
     const resized = await maybeResize(imageData, settings.maxWidth);
     post({ type: 'progress', jobId, progress: 55 });
 
-    // 3. Encode via the appropriate WASM codec
     const targetMime = resolveOutputMime(settings, originalFormat);
     const encoded = await encodeImageData(resized, targetMime, settings);
     const compressed = applyMetadataPolicy(buffer, encoded, originalFormat, targetMime, settings.stripMetadata);
+    post({ type: 'progress', jobId, progress: 80 });
+
+    const compressedImageData = await decodeToImageData(compressed, targetMime);
+    const ssimScore = await computeSsimScore(resized, compressedImageData);
     post({ type: 'progress', jobId, progress: 95 });
 
     const durationMs = Math.round(performance.now() - t0);
@@ -528,6 +629,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
       compressedBuffer: compressed,
       compressedSize: compressed.byteLength,
       compressedFormat: targetMime,
+      ssimScore,
       durationMs,
     };
 

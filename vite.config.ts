@@ -9,6 +9,7 @@ export default defineConfig({
   optimizeDeps: {
     // jSquash packages use dynamic WASM imports — don't pre-bundle them
     exclude: [
+      '@jsquash/avif',
       '@jsquash/jpeg',
       '@jsquash/png',
       '@jsquash/webp',

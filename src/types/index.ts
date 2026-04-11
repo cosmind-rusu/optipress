@@ -25,6 +25,7 @@ export interface ImageJob {
   compressedSize: number | null;
   compressedFormat: string | null;
   compressedUrl: string | null;
+  ssimScore: number | null;
   error: string | null;
   durationMs: number | null; // encode time for stats/telemetry
 }
@@ -44,6 +45,7 @@ export interface WorkerResponse {
   compressedBuffer?: ArrayBuffer;
   compressedSize?: number;
   compressedFormat?: string;
+  ssimScore?: number;
   durationMs?: number;
   error?: string;
 }

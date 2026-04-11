@@ -81,6 +81,11 @@ export default function ImageCard({ job, onRemove, onRetry, index }: ImageCardPr
                 {savings != null && savings <= 0 && (
                   <span className="ml-2 text-[var(--color-text-muted)]">no reduction</span>
                 )}
+                {job.ssimScore != null && (
+                  <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-[var(--color-bg-muted)] text-[var(--color-text-secondary)] border border-[var(--color-border)]">
+                    SSIM {job.ssimScore.toFixed(3)}
+                  </span>
+                )}
               </span>
             )}
             {job.status === 'error' && (
@@ -155,6 +160,7 @@ export default function ImageCard({ job, onRemove, onRetry, index }: ImageCardPr
             originalSize={job.originalSize}
             compressedUrl={job.compressedUrl}
             compressedSize={job.compressedSize}
+            ssimScore={job.ssimScore}
           />
         </div>
       )}

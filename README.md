@@ -225,11 +225,11 @@ OptiPress processes images **entirely in your browser**. No image data is ever s
 
 ## Roadmap
 
-- [ ] AVIF encoding via `@jsquash/avif`
-- [ ] Lossless WebP mode toggle
-- [ ] EXIF/IPTC metadata strip option
-- [ ] SSIM quality score in the before/after comparison
-- [ ] PWA manifest + service worker for offline install
+- [x] AVIF encoding via `@jsquash/avif`
+- [x] Lossless WebP mode toggle
+- [x] EXIF/IPTC metadata strip option
+- [x] SSIM quality score in the before/after comparison
+- [x] PWA manifest + service worker for offline install
 - [ ] CLI/npm package for CI pipeline usage (`npx optipress ./images/**`)
 - [ ] Custom presets (save quality/format profiles)
 
