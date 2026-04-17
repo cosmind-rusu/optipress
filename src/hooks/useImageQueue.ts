@@ -41,6 +41,14 @@ export function useImageQueue(settings: CompressionSettings) {
       poolRef.current?.dispose();
       poolRef.current = null;
       liveJobsRef.current.clear();
+      // Clean up all Blob URLs on unmount
+      setJobs(prev => {
+        for (const job of prev) {
+          URL.revokeObjectURL(job.thumbnailUrl);
+          if (job.compressedUrl) URL.revokeObjectURL(job.compressedUrl);
+        }
+        return [];
+      });
     };
   }, []);
 
@@ -127,6 +135,15 @@ export function useImageQueue(settings: CompressionSettings) {
           updateJob(job.id, {
             status: 'error',
             error: response.error ?? 'Unknown error',
+          });
+          // Clean up any existing Blob URL on error
+          setJobs(prev => {
+            const currentJob = prev.find(j => j.id === job.id);
+            if (currentJob?.compressedUrl) {
+              URL.revokeObjectURL(currentJob.compressedUrl);
+              return prev.map(j => j.id === job.id ? { ...j, compressedUrl: null } : j);
+            }
+            return prev;
           });
         }
       }

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import type { CompressionSettings } from './types';
+import { useEffect, useState } from 'react';
+import type { CompressionPreset, CompressionSettings, Effort, OutputFormat } from './types';
 import { useImageQueue } from './hooks/useImageQueue';
 import DropZone from './components/DropZone';
 import Controls from './components/Controls';
@@ -17,11 +17,80 @@ const DEFAULT_SETTINGS: CompressionSettings = {
   stripMetadata: true,
 };
 
+const PRESETS_STORAGE_KEY = 'optipress.customPresets';
+const OUTPUT_FORMATS: OutputFormat[] = ['webp', 'jpeg', 'png', 'avif', 'original'];
+const EFFORTS: Effort[] = ['fast', 'balanced', 'best'];
+
+function isCompressionSettings(value: unknown): value is CompressionSettings {
+  if (!value || typeof value !== 'object') return false;
+  const settings = value as Partial<CompressionSettings>;
+
+  return (
+    OUTPUT_FORMATS.includes(settings.outputFormat as OutputFormat) &&
+    typeof settings.quality === 'number' &&
+    settings.quality >= 10 &&
+    settings.quality <= 100 &&
+    (settings.maxWidth === null || (typeof settings.maxWidth === 'number' && settings.maxWidth >= 64 && settings.maxWidth <= 8192)) &&
+    EFFORTS.includes(settings.effort as Effort) &&
+    typeof settings.webpLossless === 'boolean' &&
+    typeof settings.stripMetadata === 'boolean'
+  );
+}
+
+function loadCustomPresets(): CompressionPreset[] {
+  try {
+    const raw = localStorage.getItem(PRESETS_STORAGE_KEY);
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter((preset): preset is CompressionPreset => {
+      if (!preset || typeof preset !== 'object') return false;
+      const candidate = preset as Partial<CompressionPreset>;
+      return (
+        typeof candidate.id === 'string' &&
+        typeof candidate.name === 'string' &&
+        candidate.name.trim().length > 0 &&
+        isCompressionSettings(candidate.settings)
+      );
+    });
+  } catch {
+    return [];
+  }
+}
+
 export default function App() {
   const [settings, setSettings] = useState<CompressionSettings>(DEFAULT_SETTINGS);
+  const [customPresets, setCustomPresets] = useState<CompressionPreset[]>(loadCustomPresets);
   const { jobs, addFiles, removeJob, retryJob, clearAll } = useImageQueue(settings);
 
   const hasJobs = jobs.length > 0;
+
+  useEffect(() => {
+    localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(customPresets));
+  }, [customPresets]);
+
+  const savePreset = (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    const preset: CompressionPreset = {
+      id: crypto.randomUUID(),
+      name: trimmed.slice(0, 32),
+      settings,
+    };
+
+    setCustomPresets(prev => [...prev, preset]);
+  };
+
+  const applyPreset = (preset: CompressionPreset) => {
+    setSettings(preset.settings);
+  };
+
+  const deletePreset = (id: string) => {
+    setCustomPresets(prev => prev.filter(preset => preset.id !== id));
+  };
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
@@ -100,8 +169,15 @@ export default function App() {
           <DropZone onFiles={addFiles} />
         )}
 
-        {/* Controls — always visible once there are jobs */}
-        {hasJobs && <Controls settings={settings} onChange={setSettings} />}
+        {/* Controls */}
+        <Controls
+          settings={settings}
+          customPresets={customPresets}
+          onChange={setSettings}
+          onApplyPreset={applyPreset}
+          onSavePreset={savePreset}
+          onDeletePreset={deletePreset}
+        />
 
         {/* Image queue */}
         <ImageQueue

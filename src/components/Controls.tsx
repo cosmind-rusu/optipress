@@ -1,8 +1,14 @@
-import type { CompressionSettings, OutputFormat, Effort } from '../types';
+import { useState } from 'react';
+import { Save, Trash2 } from 'lucide-react';
+import type { CompressionPreset, CompressionSettings, OutputFormat, Effort } from '../types';
 
 interface ControlsProps {
   settings: CompressionSettings;
+  customPresets: CompressionPreset[];
   onChange: (settings: CompressionSettings) => void;
+  onApplyPreset: (preset: CompressionPreset) => void;
+  onSavePreset: (name: string) => void;
+  onDeletePreset: (id: string) => void;
 }
 
 const FORMATS: { value: OutputFormat; label: string }[] = [
@@ -19,18 +25,97 @@ const EFFORTS: { value: Effort; label: string; hint: string }[] = [
   { value: 'best', label: 'Best', hint: 'Slowest, smallest output' },
 ];
 
-export default function Controls({ settings, onChange }: ControlsProps) {
+export default function Controls({
+  settings,
+  customPresets,
+  onChange,
+  onApplyPreset,
+  onSavePreset,
+  onDeletePreset,
+}: ControlsProps) {
+  const [presetName, setPresetName] = useState('');
+
   const set = <K extends keyof CompressionSettings>(key: K, value: CompressionSettings[K]) => {
     onChange({ ...settings, [key]: value });
   };
 
   const webpLosslessActive = settings.outputFormat === 'webp' && settings.webpLossless;
+  const canSavePreset = presetName.trim().length > 0;
+
+  const savePreset = () => {
+    if (!canSavePreset) return;
+    onSavePreset(presetName);
+    setPresetName('');
+  };
 
   return (
     <div
       className="bg-white rounded-xl border border-[var(--color-border)] overflow-hidden"
       style={{ boxShadow: 'var(--shadow-whisper)' }}
     >
+      {/* Presets */}
+      <div className="px-5 py-4 border-b border-[var(--color-border)] bg-white">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            <div className="label-caps mb-2">Custom presets</div>
+            <div className="flex flex-wrap items-center gap-2">
+              {customPresets.length > 0 ? (
+                customPresets.map(preset => (
+                  <span
+                    key={preset.id}
+                    className="inline-flex max-w-full items-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-bg-subtle)]"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onApplyPreset(preset)}
+                      className="min-h-8 max-w-[180px] truncate px-3 py-1.5 text-left text-[12px] font-semibold text-[var(--color-text-secondary)] transition-colors hover:bg-white hover:text-[var(--color-text)]"
+                      title={`Apply ${preset.name}`}
+                    >
+                      {preset.name}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDeletePreset(preset.id)}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center border-l border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-danger-subtle)] hover:text-[var(--color-danger)]"
+                      aria-label={`Delete ${preset.name}`}
+                    >
+                      <Trash2 size={13} strokeWidth={2.2} />
+                    </button>
+                  </span>
+                ))
+              ) : (
+                <span className="text-[12px] text-[var(--color-text-muted)]">
+                  Save a profile for repeated exports.
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[300px] sm:flex-row">
+            <input
+              type="text"
+              maxLength={32}
+              value={presetName}
+              onChange={e => setPresetName(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') savePreset();
+              }}
+              placeholder="Preset name"
+              className="min-h-9 flex-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-3 text-[13px] font-medium text-[var(--color-text)] transition-all placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-action)] focus:outline-none focus:ring-2 focus:ring-[var(--color-action-ring)]"
+            />
+            <button
+              type="button"
+              onClick={savePreset}
+              disabled={!canSavePreset}
+              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-dark)] px-3 text-[12px] font-semibold text-white transition-all hover:bg-[var(--color-bg-deep)] disabled:cursor-not-allowed disabled:bg-[var(--color-bg-muted)] disabled:text-[var(--color-text-muted)]"
+            >
+              <Save size={13} strokeWidth={2.2} />
+              Save current
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Row 1: Format · Quality · Max width */}
       <div className="divide-y divide-[var(--color-border)] sm:divide-y-0 sm:divide-x sm:flex sm:items-stretch">
         {/* Format */}

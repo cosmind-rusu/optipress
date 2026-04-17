@@ -153,6 +153,28 @@ npm run preview   # preview the production build locally
 
 The `dist/` folder is a fully self-contained static site. Deploy to Vercel, Netlify, GitHub Pages, or any static host.
 
+### CLI usage
+
+OptiPress also ships a Node CLI for CI pipelines and local batch jobs:
+
+```bash
+npx optipress ./images --format webp --quality 82
+npx optipress "./assets/**/*.{jpg,png}" --out-dir ./dist/images --max-width 1600
+```
+
+Supported inputs: JPEG, PNG, WebP, AVIF. Supported outputs: JPEG, PNG, WebP, AVIF, or `original`.
+
+Useful flags:
+
+| Flag | Default | Notes |
+|------|---------|-------|
+| `--out-dir <dir>` | `optipress-output` | Writes optimized images without overwriting originals |
+| `--format <format>` | `webp` | `webp`, `jpeg`, `png`, `avif`, `original` |
+| `--quality <1-100>` | `80` | Lossy quality for JPEG, WebP, AVIF |
+| `--max-width <px>` | none | Downscales wider images with Lanczos3 |
+| `--effort <tier>` | `balanced` | `fast`, `balanced`, `best` |
+| `--lossless-webp` | off | Enables lossless WebP output |
+
 ### Deploying to Vercel
 
 ```bash
@@ -230,8 +252,8 @@ OptiPress processes images **entirely in your browser**. No image data is ever s
 - [x] EXIF/IPTC metadata strip option
 - [x] SSIM quality score in the before/after comparison
 - [x] PWA manifest + service worker for offline install
-- [ ] CLI/npm package for CI pipeline usage (`npx optipress ./images/**`)
-- [ ] Custom presets (save quality/format profiles)
+- [x] Custom presets (save quality/format profiles)
+- [x] CLI/npm package for CI pipeline usage (`npx optipress ./images/**`)
 
 ---
 

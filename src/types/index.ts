@@ -13,6 +13,12 @@ export interface CompressionSettings {
   stripMetadata: boolean;
 }
 
+export interface CompressionPreset {
+  id: string;
+  name: string;
+  settings: CompressionSettings;
+}
+
 export interface ImageJob {
   id: string;
   file: File;
